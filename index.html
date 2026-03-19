@@ -1,0 +1,1541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FlowX — Workflow Automation | Halleyx</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+:root {
+  --bg:#050912; --surface:#0a1120; --surface2:#0f1a2e; --border:#1a2b45;
+  --accent:#00e5ff; --accent2:#a855f7; --accent3:#10b981; --warn:#f59e0b; --danger:#ef4444;
+  --text:#e2e8f8; --muted:#5a6a8a; --card:#091525;
+  --grad: linear-gradient(135deg,#00e5ff,#a855f7);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+body::before{content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(0,229,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.03) 1px,transparent 1px);
+  background-size:40px 40px;pointer-events:none;z-index:0}
+
+#loginPage{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.login-orb{position:absolute;width:500px;height:500px;border-radius:50%;
+  background:radial-gradient(circle,rgba(0,229,255,.07) 0%,transparent 70%);
+  top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none}
+.login-card{
+  background:linear-gradient(145deg,rgba(10,17,32,.98),rgba(9,21,37,.98));
+  border:1px solid rgba(0,229,255,.15);border-radius:24px;padding:2.5rem 2rem;
+  width:400px;position:relative;z-index:1;
+  box-shadow:0 0 60px rgba(0,229,255,.06),0 30px 80px rgba(0,0,0,.6);
+  animation:slideUp .5s cubic-bezier(.16,1,.3,1)}
+@keyframes slideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.brand-logo{text-align:center;margin-bottom:2rem}
+.brand-logo .logo-text{font-size:2.2rem;font-weight:900;letter-spacing:-1px;
+  background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.brand-logo .tagline{font-size:.78rem;color:var(--muted);margin-top:.3rem;letter-spacing:.1em;text-transform:uppercase}
+
+.inp-wrap{margin-bottom:1rem}
+.inp-wrap label{display:block;font-size:.72rem;font-weight:600;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.08em;margin-bottom:.4rem}
+.inp-wrap input,.inp-wrap select{
+  width:100%;padding:.75rem 1rem;background:rgba(255,255,255,.04);
+  border:1px solid var(--border);border-radius:10px;color:var(--text);
+  font-family:'Outfit',sans-serif;font-size:.9rem;outline:none;transition:.2s}
+.inp-wrap input:focus,.inp-wrap select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,229,255,.08)}
+.inp-wrap select option{background:var(--surface2)}
+
+.btn-login{width:100%;padding:.85rem;background:var(--grad);border:none;border-radius:10px;
+  color:#000;font-weight:700;font-size:.95rem;font-family:'Outfit',sans-serif;
+  cursor:pointer;letter-spacing:.03em;transition:.2s;margin-top:.5rem}
+.btn-login:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(0,229,255,.25)}
+
+.login-err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);
+  border-radius:8px;padding:.6rem .9rem;font-size:.82rem;color:var(--danger);
+  margin-bottom:.75rem;display:none}
+.switch-link{text-align:center;margin-top:1.25rem;font-size:.83rem;color:var(--muted)}
+.switch-link a{color:var(--accent);cursor:pointer;font-weight:600}
+.demo-hint{margin-top:1rem;background:rgba(0,229,255,.06);border:1px solid rgba(0,229,255,.12);
+  border-radius:10px;padding:.75rem;font-size:.78rem;color:var(--muted);text-align:center}
+.demo-hint strong{color:var(--accent)}
+
+
+#app{display:none;height:100vh;flex-direction:row;position:relative;z-index:1}
+
+
+.sidebar{width:230px;min-width:230px;background:linear-gradient(180deg,#060d1c 0%,#050912 100%);
+  border-right:1px solid var(--border);display:flex;flex-direction:column;padding:1.25rem 0;z-index:10}
+.sb-brand{padding:0 1.25rem 1.25rem;border-bottom:1px solid var(--border);margin-bottom:.75rem}
+.sb-brand .logo{font-size:1.4rem;font-weight:900;letter-spacing:-1px;
+  background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sb-brand small{display:block;font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-top:1px}
+
+.nav-grp{padding:0 .6rem;margin-bottom:.25rem}
+.nav-lbl{font-size:.6rem;font-weight:700;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.12em;padding:.4rem .7rem;margin-bottom:.15rem}
+.nav-item{display:flex;align-items:center;gap:.65rem;padding:.6rem .7rem;border-radius:9px;
+  cursor:pointer;transition:.2s;font-size:.85rem;color:var(--muted);position:relative;user-select:none}
+.nav-item:hover{background:rgba(255,255,255,.04);color:var(--text)}
+.nav-item.active{background:rgba(0,229,255,.08);color:var(--accent)}
+.nav-item.active::before{content:'';position:absolute;left:0;top:20%;height:60%;
+  width:3px;background:var(--accent);border-radius:0 3px 3px 0}
+.nav-item i{width:16px;text-align:center;font-size:.85rem}
+.nav-badge{margin-left:auto;background:var(--warn);color:#000;font-size:.6rem;
+  font-weight:700;padding:2px 6px;border-radius:8px;min-width:18px;text-align:center}
+.nav-badge.blue{background:var(--accent)}
+
+.sb-footer{margin-top:auto;padding:.75rem .6rem;border-top:1px solid var(--border)}
+.user-pill{display:flex;align-items:center;gap:.6rem;padding:.6rem .7rem;
+  border-radius:10px;background:rgba(255,255,255,.04);cursor:pointer;transition:.2s}
+.user-pill:hover{background:rgba(255,255,255,.07)}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--grad);
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;flex-shrink:0}
+.u-info{flex:1;min-width:0}
+.u-info .uname{font-size:.82rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.u-info .urole{font-size:.65rem;color:var(--muted);text-transform:capitalize}
+.logout-ico{color:var(--muted);font-size:.8rem;transition:.2s;flex-shrink:0}
+.logout-ico:hover{color:var(--danger)}
+
+/* MAIN */
+.main-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{display:flex;align-items:center;gap:1rem;padding:.9rem 1.75rem;
+  border-bottom:1px solid var(--border);background:rgba(5,9,18,.9);backdrop-filter:blur(10px);
+  position:sticky;top:0;z-index:5;flex-shrink:0}
+.topbar h1{font-size:1.15rem;font-weight:700;letter-spacing:-.3px}
+.topbar .bc{font-size:.72rem;color:var(--muted)}
+.tb-actions{margin-left:auto;display:flex;gap:.6rem;align-items:center}
+.icon-btn{width:36px;height:36px;background:rgba(255,255,255,.04);border:1px solid var(--border);
+  border-radius:9px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:.2s;color:var(--muted);position:relative;flex-shrink:0}
+.icon-btn:hover{border-color:var(--accent);color:var(--accent)}
+.notif-dot{position:absolute;top:5px;right:5px;width:7px;height:7px;
+  background:var(--accent);border-radius:50%;border:2px solid var(--bg)}
+
+.scroll-area{flex:1;overflow-y:auto}
+.page{display:none;padding:1.75rem;animation:fadePg .25s ease}
+.page.active{display:block}
+@keyframes fadePg{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.75rem}
+.stat-box{background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:1.25rem;position:relative;overflow:hidden;transition:.2s;cursor:default}
+.stat-box::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--sc,#00e5ff),transparent)}
+.stat-box:hover{transform:translateY(-2px);border-color:rgba(0,229,255,.2)}
+.stat-box.g{--sc:#10b981}.stat-box.p{--sc:#a855f7}.stat-box.w{--sc:#f59e0b}
+.s-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;
+  justify-content:center;font-size:1rem;margin-bottom:.85rem}
+.s-icon.b{background:rgba(0,229,255,.1);color:var(--accent)}
+.s-icon.g{background:rgba(16,185,129,.1);color:var(--accent3)}
+.s-icon.p{background:rgba(168,85,247,.1);color:#a855f7}
+.s-icon.w{background:rgba(245,158,11,.1);color:var(--warn)}
+.s-val{font-size:1.9rem;font-weight:800;font-family:'Outfit',sans-serif;line-height:1}
+.s-lbl{font-size:.75rem;color:var(--muted);margin-top:.2rem}
+
+/* SECTION HEADER */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.sec-title{font-size:1rem;font-weight:700;letter-spacing:-.2px}
+
+/* BUTTONS */
+.btn{padding:.55rem 1.1rem;border-radius:8px;font-family:'Outfit',sans-serif;
+  font-size:.82rem;font-weight:600;cursor:pointer;border:none;transition:.2s;
+  display:inline-flex;align-items:center;gap:.4rem}
+.btn-sm{padding:.38rem .8rem;font-size:.75rem}
+.btn-acc{background:var(--accent);color:#000}
+.btn-acc:hover{box-shadow:0 4px 15px rgba(0,229,255,.3);transform:translateY(-1px)}
+.btn-out{background:transparent;border:1px solid var(--border);color:var(--text)}
+.btn-out:hover{border-color:var(--accent);color:var(--accent)}
+.btn-ok{background:rgba(16,185,129,.12);color:var(--accent3);border:1px solid rgba(16,185,129,.25)}
+.btn-ok:hover{background:rgba(16,185,129,.22)}
+.btn-del{background:rgba(239,68,68,.1);color:var(--danger);border:1px solid rgba(239,68,68,.2)}
+.btn-del:hover{background:rgba(239,68,68,.2)}
+.btn-pur{background:rgba(168,85,247,.12);color:#c084fc;border:1px solid rgba(168,85,247,.25)}
+.btn-pur:hover{background:rgba(168,85,247,.22)}
+
+/* TABLE */
+.tbl-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+table{width:100%;border-collapse:collapse}
+thead tr{background:rgba(255,255,255,.025);border-bottom:1px solid var(--border)}
+th{padding:.8rem 1.1rem;text-align:left;font-size:.68rem;font-weight:700;
+  color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+td{padding:.8rem 1.1rem;font-size:.83rem;border-bottom:1px solid rgba(255,255,255,.03)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.018)}
+
+/* BADGE */
+.badge{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;
+  border-radius:20px;font-size:.68rem;font-weight:600}
+.badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor}
+.brun{background:rgba(0,229,255,.1);color:var(--accent)}
+.bdone{background:rgba(16,185,129,.1);color:var(--accent3)}
+.bpend{background:rgba(245,158,11,.1);color:var(--warn)}
+.brej{background:rgba(239,68,68,.1);color:var(--danger)}
+.bpause{background:rgba(168,85,247,.1);color:#c084fc}
+.bstart{background:rgba(0,229,255,.1);color:var(--accent)}
+.bend{background:rgba(168,85,247,.1);color:#c084fc}
+.bprocess{background:rgba(245,158,11,.1);color:var(--warn)}
+.bapproval{background:rgba(239,68,68,.1);color:var(--danger)}
+.bcondition{background:rgba(16,185,129,.1);color:var(--accent3)}
+.bnotification{background:rgba(168,85,247,.1);color:#c084fc}
+.badmin{background:rgba(0,229,255,.12);color:var(--accent)}
+.bmanager{background:rgba(245,158,11,.12);color:var(--warn)}
+.bemployee{background:rgba(16,185,129,.12);color:var(--accent3)}
+
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem}
+.appr-card{background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:1.25rem;transition:.2s}
+.appr-card:hover{border-color:rgba(0,229,255,.2);transform:translateY(-2px)}
+.ac-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.75rem}
+.ac-wf{font-weight:700;font-size:.9rem}
+.ac-step{font-size:.75rem;color:var(--accent);margin-top:.15rem}
+.ac-req{font-size:.75rem;color:var(--muted);margin-bottom:1rem}
+.ac-btns{display:flex;gap:.5rem}
+
+.wf-canvas{background:var(--card);border:1px solid var(--border);border-radius:14px;
+  min-height:160px;padding:1.5rem;margin-bottom:1.25rem;overflow-x:auto}
+.step-flow{display:flex;align-items:center;flex-wrap:wrap;gap:0;min-height:80px}
+.step-node{display:flex;flex-direction:column;align-items:center}
+.step-box{width:100px;padding:.6rem .4rem;border-radius:10px;border:2px solid var(--border);
+  text-align:center;font-size:.72rem;font-weight:600;cursor:default;transition:.2s}
+.step-box.start-type{border-color:rgba(0,229,255,.5);background:rgba(0,229,255,.05)}
+.step-box.end-type{border-color:rgba(168,85,247,.5);background:rgba(168,85,247,.05)}
+.step-box.approval-type{border-color:rgba(239,68,68,.45);background:rgba(239,68,68,.04)}
+.step-box.condition-type{border-color:rgba(16,185,129,.45);background:rgba(16,185,129,.04)}
+.step-box.process-type{border-color:rgba(245,158,11,.45);background:rgba(245,158,11,.04)}
+.step-box.notification-type{border-color:rgba(168,85,247,.45);background:rgba(168,85,247,.04)}
+.step-ico{font-size:1.1rem;display:block;margin-bottom:.2rem}
+.step-lbl{font-size:.6rem;color:var(--muted);margin-top:.25rem}
+.step-arr{width:36px;height:2px;background:linear-gradient(90deg,var(--border),var(--accent));
+  position:relative;margin:0 .3rem;margin-bottom:1.5rem;flex-shrink:0}
+.step-arr::after{content:'';position:absolute;right:-1px;top:-4px;
+  border:5px solid transparent;border-left-color:var(--accent)}
+
+
+.timeline{position:relative;padding-left:1.75rem}
+.timeline::before{content:'';position:absolute;left:.4rem;top:0;bottom:0;
+  width:2px;background:var(--border)}
+.tl-item{position:relative;margin-bottom:1rem}
+.tl-dot{position:absolute;left:-1.55rem;top:.2rem;width:11px;height:11px;
+  border-radius:50%;background:var(--accent);border:2px solid var(--bg)}
+.tl-dot.done{background:var(--accent3)}
+.tl-dot.rej{background:var(--danger)}
+.tl-time{font-size:.68rem;color:var(--muted);margin-bottom:.15rem}
+.tl-text{font-size:.82rem}
+.tl-who{font-size:.68rem;color:var(--muted);margin-top:.1rem}
+
+.empty{text-align:center;padding:3rem 1.5rem;color:var(--muted)}
+.empty i{font-size:2.5rem;opacity:.25;margin-bottom:.75rem;display:block}
+.empty p{font-size:.85rem}
+
+
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;
+  align-items:center;justify-content:center;z-index:300;backdrop-filter:blur(4px)}
+.modal-bg.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:18px;
+  padding:1.75rem;width:480px;max-width:95vw;max-height:90vh;overflow-y:auto;
+  animation:modalPop .22s cubic-bezier(.16,1,.3,1)}
+@keyframes modalPop{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
+.modal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
+.modal-hdr h3{font-size:1rem;font-weight:700}
+.modal-x{width:30px;height:30px;background:rgba(255,255,255,.06);border:none;
+  border-radius:7px;color:var(--muted);cursor:pointer;font-size:.9rem;transition:.2s}
+.modal-x:hover{background:rgba(239,68,68,.15);color:var(--danger)}
+
+
+.fg{margin-bottom:1rem}
+.fg label{display:block;font-size:.7rem;font-weight:600;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.07em;margin-bottom:.35rem}
+.fg input,.fg select,.fg textarea{
+  width:100%;padding:.7rem .9rem;background:rgba(255,255,255,.04);
+  border:1px solid var(--border);border-radius:9px;color:var(--text);
+  font-family:'Outfit',sans-serif;font-size:.85rem;outline:none;transition:.2s}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,229,255,.07)}
+.fg select option{background:var(--surface2)}
+.fg textarea{resize:vertical;min-height:75px}
+.fg-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+
+
+.notif-panel{position:fixed;top:64px;right:1.25rem;width:310px;
+  background:var(--surface);border:1px solid var(--border);border-radius:14px;
+  box-shadow:0 20px 50px rgba(0,0,0,.5);z-index:100;display:none}
+.notif-panel.open{display:block;animation:panelSlide .2s ease}
+@keyframes panelSlide{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.np-hdr{padding:.9rem 1rem;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between}
+.np-hdr h4{font-size:.85rem;font-weight:700}
+.np-list{max-height:280px;overflow-y:auto}
+.np-item{padding:.75rem 1rem;border-bottom:1px solid rgba(255,255,255,.04);font-size:.78rem;cursor:default}
+.np-item.unread{background:rgba(0,229,255,.03)}
+.np-msg{color:var(--text);margin-bottom:.2rem}
+.np-time{color:var(--muted);font-size:.68rem}
+
+/* TOAST */
+#toast{position:fixed;bottom:1.5rem;right:1.5rem;
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  padding:.85rem 1.25rem;font-size:.82rem;z-index:999;
+  display:none;align-items:center;gap:.6rem;
+  box-shadow:0 15px 40px rgba(0,0,0,.4);max-width:320px}
+#toast.show{display:flex;animation:toastIn .25s ease}
+@keyframes toastIn{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:translateX(0)}}
+#toast.ok{border-color:rgba(16,185,129,.35)}
+#toast.err{border-color:rgba(239,68,68,.35)}
+#toast.ok i{color:var(--accent3)}
+#toast.err i{color:var(--danger)}
+
+/* AUDIT FEED */
+.audit-row{display:flex;gap:.85rem;align-items:flex-start;padding:.75rem 0;
+  border-bottom:1px solid rgba(255,255,255,.04)}
+.audit-row:last-child{border:none}
+.audit-ico{width:32px;height:32px;border-radius:8px;background:rgba(0,229,255,.08);
+  color:var(--accent);display:flex;align-items:center;justify-content:center;
+  font-size:.78rem;flex-shrink:0}
+.audit-txt{font-size:.82rem;flex:1}
+.audit-who{font-size:.7rem;color:var(--muted);margin-top:.15rem}
+.audit-ts{font-size:.68rem;color:var(--muted);white-space:nowrap}
+
+/* LIVE FEED */
+.live-feed{background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:1rem;max-height:280px;overflow-y:auto}
+.lf-item{display:flex;gap:.6rem;align-items:flex-start;padding:.45rem 0;
+  border-bottom:1px solid rgba(255,255,255,.04);animation:fadePg .3s ease}
+.lf-item:last-child{border:none}
+.lf-ico{font-size:.75rem;margin-top:2px;flex-shrink:0}
+.lf-txt{font-size:.78rem;flex:1}
+.lf-time{font-size:.65rem;color:var(--muted);white-space:nowrap}
+
+/* RULES BUILDER */
+.rule-card{background:rgba(255,255,255,.03);border:1px solid var(--border);
+  border-radius:10px;padding:.85rem;margin-bottom:.6rem;display:flex;align-items:center;gap:.75rem}
+.rule-card code{font-family:'JetBrains Mono',monospace;font-size:.75rem;
+  background:rgba(0,229,255,.08);color:var(--accent);padding:.2rem .5rem;border-radius:5px}
+
+/* PROCESS TRACKER */
+.tracker-card{background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:1.25rem;margin-bottom:1rem}
+.tracker-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem}
+.tracker-wf{font-weight:700;font-size:.9rem}
+.progress-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:.5rem}
+.progress-fill{height:100%;background:var(--grad);border-radius:3px;transition:.5s}
+
+/* USER TABLE ROLE SELECT */
+.role-sel{background:rgba(255,255,255,.04);border:1px solid var(--border);
+  border-radius:6px;color:var(--text);padding:.3rem .6rem;
+  font-family:'Outfit',sans-serif;font-size:.75rem;cursor:pointer}
+
+/* TEMPLATE CARDS */
+.tmpl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;margin-bottom:1.5rem}
+.tmpl-card{background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:1.1rem;cursor:pointer;transition:.2s;position:relative;overflow:hidden}
+.tmpl-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--grad)}
+.tmpl-card:hover{border-color:rgba(0,229,255,.25);transform:translateY(-2px)}
+.tmpl-icon{font-size:1.5rem;margin-bottom:.5rem}
+.tmpl-name{font-weight:700;font-size:.88rem;margin-bottom:.25rem}
+.tmpl-desc{font-size:.72rem;color:var(--muted)}
+
+/* SEARCH BAR */
+.search-bar{display:flex;gap:.6rem;margin-bottom:1rem}
+.search-inp{flex:1;padding:.6rem .9rem;background:rgba(255,255,255,.04);
+  border:1px solid var(--border);border-radius:9px;color:var(--text);
+  font-family:'Outfit',sans-serif;font-size:.82rem;outline:none;transition:.2s}
+.search-inp:focus{border-color:var(--accent)}
+
+@media(max-width:900px){.stats-row{grid-template-columns:1fr 1fr}.sidebar{display:none}}
+@media(max-width:600px){.stats-row{grid-template-columns:1fr}.page{padding:1rem}}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ LOGIN ═══════════════ -->
+<div id="loginPage">
+  <div class="login-orb"></div>
+  <div class="login-card">
+    <div class="brand-logo">
+      <div class="logo-text">FlowX</div>
+      <div class="tagline">Workflow Automation Platform · Halleyx</div>
+    </div>
+
+    <div id="fLogin">
+      <div class="login-err" id="errLogin"></div>
+      <div class="inp-wrap"><label>Email</label>
+        <input type="email" id="lEmail" value="admin@flowx.com" placeholder="you@company.com"></div>
+      <div class="inp-wrap"><label>Password</label>
+        <input type="password" id="lPass" value="admin123" placeholder="••••••••"></div>
+      <button class="btn-login" onclick="doLogin()"><i class="fas fa-sign-in-alt"></i> Sign In</button>
+      <div class="switch-link">New user? <a onclick="toggleAuth('register')">Create account</a></div>
+      <div class="demo-hint">
+        <strong>Demo:</strong> admin@flowx.com / admin123<br>
+        manager@flowx.com / admin123 &nbsp;|&nbsp; emp@flowx.com / admin123
+      </div>
+    </div>
+
+    <div id="fReg" style="display:none">
+      <div class="login-err" id="errReg"></div>
+      <div class="inp-wrap"><label>Full Name</label><input type="text" id="rName" placeholder="John Doe"></div>
+      <div class="inp-wrap"><label>Email</label><input type="email" id="rEmail" placeholder="you@company.com"></div>
+      <div class="inp-wrap"><label>Password</label><input type="password" id="rPass" placeholder="Min 6 chars"></div>
+      <div class="inp-wrap"><label>Role</label>
+        <select id="rRole">
+          <option value="employee">Employee</option>
+          <option value="manager">Manager</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <button class="btn-login" onclick="doRegister()">Create Account</button>
+      <div class="switch-link">Have account? <a onclick="toggleAuth('login')">Sign in</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ APP ═══════════════ -->
+<div id="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-brand"><div class="logo">FlowX</div><small>by Halleyx</small></div>
+
+    <div class="nav-grp">
+      <div class="nav-lbl">Main</div>
+      <div class="nav-item active" onclick="go('dashboard')"><i class="fas fa-gauge-high"></i> Dashboard</div>
+      <div class="nav-item" onclick="go('workflows')"><i class="fas fa-diagram-project"></i> Workflows</div>
+      <div class="nav-item" onclick="go('instances')"><i class="fas fa-play-circle"></i> My Processes</div>
+      <div class="nav-item" onclick="go('approvals')" id="navAppr">
+        <i class="fas fa-check-circle"></i> Approvals
+        <span class="nav-badge" id="apprBadge" style="display:none">0</span>
+      </div>
+    </div>
+    <div class="nav-grp">
+      <div class="nav-lbl">Tools</div>
+      <div class="nav-item" onclick="go('builder')"><i class="fas fa-pen-ruler"></i> Workflow Builder</div>
+      <div class="nav-item" onclick="go('tracker')"><i class="fas fa-timeline"></i> Process Tracker</div>
+      <div class="nav-item" onclick="go('rules')"><i class="fas fa-code-branch"></i> Rule Engine</div>
+      <div class="nav-item" onclick="go('templates')"><i class="fas fa-layer-group"></i> Templates</div>
+    </div>
+    <div class="nav-grp">
+      <div class="nav-lbl" id="navAdminLbl">Admin</div>
+      <div class="nav-item" onclick="go('users')" id="navUsers"><i class="fas fa-users-gear"></i> Users</div>
+      <div class="nav-item" onclick="go('audit')" id="navAudit"><i class="fas fa-shield-halved"></i> Audit Logs</div>
+    </div>
+
+    <div class="sb-footer">
+      <div class="user-pill">
+        <div class="avatar" id="sbAvatar">A</div>
+        <div class="u-info"><div class="uname" id="sbName">—</div><div class="urole" id="sbRole">—</div></div>
+        <i class="fas fa-right-from-bracket logout-ico" onclick="logout()" title="Logout"></i>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN WRAP -->
+  <div class="main-wrap">
+    <div class="topbar">
+      <div>
+        <h1 id="pgTitle">Dashboard</h1>
+        <div class="bc" id="pgBC">Overview</div>
+      </div>
+      <div class="tb-actions">
+        <div class="icon-btn" onclick="toggleNotif()" id="notifBtn" title="Notifications">
+          <i class="fas fa-bell"></i>
+          <div class="notif-dot" id="notifDot" style="display:none"></div>
+        </div>
+        <div class="icon-btn" onclick="go('dashboard')" title="Refresh" id="refreshBtn"><i class="fas fa-rotate"></i></div>
+      </div>
+    </div>
+
+    <!-- NOTIFICATION PANEL -->
+    <div class="notif-panel" id="notifPanel">
+      <div class="np-hdr">
+        <h4>Notifications</h4>
+        <button class="btn btn-sm btn-out" onclick="markAllRead()">Mark all read</button>
+      </div>
+      <div class="np-list" id="notifList">
+        <div class="empty" style="padding:1.5rem"><i class="far fa-bell-slash"></i><p>No notifications</p></div>
+      </div>
+    </div>
+
+    <div class="scroll-area">
+
+      <!-- ═══ DASHBOARD ═══ -->
+      <div class="page active" id="page-dashboard">
+        <div class="stats-row">
+          <div class="stat-box"><div class="s-icon b"><i class="fas fa-layer-group"></i></div>
+            <div class="s-val" id="st-total">0</div><div class="s-lbl">Total Processes</div></div>
+          <div class="stat-box g"><div class="s-icon g"><i class="fas fa-check-double"></i></div>
+            <div class="s-val" id="st-done">0</div><div class="s-lbl">Completed</div></div>
+          <div class="stat-box p"><div class="s-icon p"><i class="fas fa-spinner"></i></div>
+            <div class="s-val" id="st-run">0</div><div class="s-lbl">Running</div></div>
+          <div class="stat-box w"><div class="s-icon w"><i class="fas fa-clock"></i></div>
+            <div class="s-val" id="st-pend">0</div><div class="s-lbl">Pending Approvals</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:1.25rem">
+          <div>
+            <div class="sec-hdr"><div class="sec-title">Recent Processes</div>
+              <button class="btn btn-sm btn-out" onclick="go('instances')">View All</button></div>
+            <div id="dashRecent"><div class="empty"><i class="fas fa-inbox"></i><p>No processes yet</p></div></div>
+          </div>
+          <div>
+            <div class="sec-hdr"><div class="sec-title">⚡ Live Activity</div></div>
+            <div class="live-feed" id="liveFeed">
+              <div class="empty" style="padding:1.5rem"><i class="fas fa-satellite-dish"></i><p>No activity yet</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ WORKFLOWS ═══ -->
+      <div class="page" id="page-workflows">
+        <div class="sec-hdr">
+          <div class="sec-title">All Workflows</div>
+          <button class="btn btn-acc" onclick="openModal('mCreateWF')"><i class="fas fa-plus"></i> New Workflow</button>
+        </div>
+        <div class="search-bar">
+          <input class="search-inp" id="wfSearch" placeholder="Search workflows..." oninput="filterTable('wfSearch','wfTbody',0)">
+        </div>
+        <div class="tbl-wrap">
+          <table><thead><tr><th>Name</th><th>Description</th><th>Steps</th><th>Created</th><th>Actions</th></tr></thead>
+          <tbody id="wfTbody"></tbody></table>
+        </div>
+      </div>
+
+      <!-- ═══ INSTANCES ═══ -->
+      <div class="page" id="page-instances">
+        <div class="sec-hdr">
+          <div class="sec-title">My Processes</div>
+          <button class="btn btn-acc" onclick="openModal('mStartInst')"><i class="fas fa-play"></i> Start Process</button>
+        </div>
+        <div class="search-bar">
+          <input class="search-inp" id="instSearch" placeholder="Search processes..." oninput="filterTable('instSearch','instTbody',0)">
+          <select class="search-inp" style="flex:0 0 140px" id="instFilter" onchange="renderInstances()">
+            <option value="">All Status</option>
+            <option value="running">Running</option>
+            <option value="pending_approval">Pending</option>
+            <option value="completed">Completed</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+        <div class="tbl-wrap">
+          <table><thead><tr><th>Workflow</th><th>Current Step</th><th>Status</th><th>Started</th><th>Actions</th></tr></thead>
+          <tbody id="instTbody"></tbody></table>
+        </div>
+      </div>
+
+      <!-- ═══ APPROVALS ═══ -->
+      <div class="page" id="page-approvals">
+        <div class="sec-hdr">
+          <div class="sec-title">Pending Approvals</div>
+          <span class="badge bpend" id="apprCountBadge">0 pending</span>
+        </div>
+        <div class="card-grid" id="apprGrid">
+          <div class="empty"><i class="fas fa-check-circle"></i><p>All caught up!</p></div>
+        </div>
+      </div>
+
+      <!-- ═══ BUILDER ═══ -->
+      <div class="page" id="page-builder">
+        <div class="sec-hdr">
+          <div class="sec-title">Workflow Builder</div>
+          <div style="display:flex;gap:.6rem;align-items:center">
+            <select id="builderSel" style="padding:.55rem .9rem;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Outfit',sans-serif;font-size:.82rem">
+              <option value="">— Select Workflow —</option>
+            </select>
+            <button class="btn btn-acc" onclick="loadBuilder()"><i class="fas fa-eye"></i> Load</button>
+          </div>
+        </div>
+        <div class="wf-canvas" id="builderCanvas">
+          <div class="empty"><i class="fas fa-diagram-project"></i><p>Select a workflow to visualize</p></div>
+        </div>
+        <div class="sec-hdr">
+          <div class="sec-title">Steps</div>
+          <button class="btn btn-acc" id="addStepBtn" style="display:none" onclick="openModal('mAddStep')"><i class="fas fa-plus"></i> Add Step</button>
+        </div>
+        <div class="tbl-wrap">
+          <table><thead><tr><th>#</th><th>Step Name</th><th>Type</th><th>Next Step</th><th>Actions</th></tr></thead>
+          <tbody id="builderTbody"></tbody></table>
+        </div>
+      </div>
+
+      <!-- ═══ TRACKER ═══ -->
+      <div class="page" id="page-tracker">
+        <div class="sec-hdr"><div class="sec-title">Process Tracker</div></div>
+        <div id="trackerList"><div class="empty"><i class="fas fa-timeline"></i><p>No processes to track</p></div></div>
+      </div>
+
+      <!-- ═══ RULES ═══ -->
+      <div class="page" id="page-rules">
+        <div class="sec-hdr">
+          <div class="sec-title">Rule Engine</div>
+          <button class="btn btn-acc" onclick="openModal('mAddRule')"><i class="fas fa-plus"></i> Add Rule</button>
+        </div>
+        <div id="rulesList"><div class="empty"><i class="fas fa-code-branch"></i><p>No rules defined yet</p></div></div>
+      </div>
+
+      <!-- ═══ TEMPLATES ═══ -->
+      <div class="page" id="page-templates">
+        <div class="sec-hdr"><div class="sec-title">Workflow Templates</div></div>
+        <div class="tmpl-grid" id="tmplGrid"></div>
+        <div class="sec-hdr" style="margin-top:1.5rem"><div class="sec-title">My Workflows</div></div>
+        <div class="tbl-wrap">
+          <table><thead><tr><th>Name</th><th>Steps</th><th>Created</th><th>Action</th></tr></thead>
+          <tbody id="tmplWfTbody"></tbody></table>
+        </div>
+      </div>
+
+      <!-- ═══ USERS ═══ -->
+      <div class="page" id="page-users">
+        <div class="sec-hdr">
+          <div class="sec-title">User Management</div>
+          <div style="display:flex;gap:.6rem">
+            <button class="btn btn-out btn-sm" onclick="exportCSV('audit')"><i class="fas fa-file-csv"></i> Export Audit</button>
+            <button class="btn btn-out btn-sm" onclick="exportCSV('instances')"><i class="fas fa-file-csv"></i> Export Processes</button>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Joined</th><th>Actions</th></tr></thead>
+          <tbody id="usersTbody"></tbody></table>
+        </div>
+      </div>
+
+      <!-- ═══ AUDIT ═══ -->
+      <div class="page" id="page-audit">
+        <div class="sec-hdr">
+          <div class="sec-title">Audit Logs</div>
+          <button class="btn btn-out btn-sm" onclick="renderAudit()"><i class="fas fa-rotate"></i> Refresh</button>
+        </div>
+        <div class="tbl-wrap" style="padding:1.25rem"><div id="auditList"></div></div>
+      </div>
+
+    </div><!-- scroll-area -->
+  </div><!-- main-wrap -->
+</div><!-- app -->
+
+<!-- ═══════ MODALS ═══════ -->
+
+<!-- Create Workflow -->
+<div class="modal-bg" id="mCreateWF">
+  <div class="modal">
+    <div class="modal-hdr"><h3><i class="fas fa-diagram-project" style="color:var(--accent)"></i> New Workflow</h3>
+      <button class="modal-x" onclick="closeModal('mCreateWF')">✕</button></div>
+    <div class="fg"><label>Workflow Name</label><input type="text" id="mWfName" placeholder="e.g. Leave Approval"></div>
+    <div class="fg"><label>Description</label><textarea id="mWfDesc" placeholder="What does this workflow do?"></textarea></div>
+    <button class="btn btn-acc" style="width:100%" onclick="createWorkflow()">Create Workflow</button>
+  </div>
+</div>
+
+<!-- Start Instance -->
+<div class="modal-bg" id="mStartInst">
+  <div class="modal">
+    <div class="modal-hdr"><h3><i class="fas fa-play" style="color:var(--accent)"></i> Start Process</h3>
+      <button class="modal-x" onclick="closeModal('mStartInst')">✕</button></div>
+    <div class="fg"><label>Select Workflow</label><select id="mInstWf"></select></div>
+    <div class="fg"><label>Notes (optional)</label><textarea id="mInstNotes" placeholder="Any notes for this process..."></textarea></div>
+    <button class="btn btn-acc" style="width:100%" onclick="startInstance()"><i class="fas fa-rocket"></i> Launch Process</button>
+  </div>
+</div>
+
+<!-- View Timeline -->
+<div class="modal-bg" id="mTimeline">
+  <div class="modal" style="width:540px">
+    <div class="modal-hdr"><h3><i class="fas fa-timeline" style="color:var(--accent)"></i> Process Timeline</h3>
+      <button class="modal-x" onclick="closeModal('mTimeline')">✕</button></div>
+    <div id="mTimelineBody"></div>
+  </div>
+</div>
+
+<!-- Resolve Approval -->
+<div class="modal-bg" id="mResolve">
+  <div class="modal">
+    <div class="modal-hdr"><h3 id="mResTitle">Resolve</h3>
+      <button class="modal-x" onclick="closeModal('mResolve')">✕</button></div>
+    <input type="hidden" id="mResId"><input type="hidden" id="mResAction">
+    <div class="fg"><label>Comment (optional)</label><textarea id="mResComment" placeholder="Add a comment..."></textarea></div>
+    <button class="btn btn-acc" style="width:100%" onclick="submitResolve()">Confirm Decision</button>
+  </div>
+</div>
+
+<!-- Add Step -->
+<div class="modal-bg" id="mAddStep">
+  <div class="modal">
+    <div class="modal-hdr"><h3>Add Workflow Step</h3>
+      <button class="modal-x" onclick="closeModal('mAddStep')">✕</button></div>
+    <input type="hidden" id="mStepWfId">
+    <div class="fg"><label>Step Name</label><input type="text" id="mStepName" placeholder="e.g. Manager Review"></div>
+    <div class="fg-row">
+      <div class="fg"><label>Type</label>
+        <select id="mStepType">
+          <option value="start">▶ Start</option><option value="process">⚙ Process</option>
+          <option value="condition">◆ Condition</option><option value="approval">✋ Approval</option>
+          <option value="notification">🔔 Notification</option><option value="end">⏹ End</option>
+        </select>
+      </div>
+      <div class="fg"><label>Position</label><input type="number" id="mStepPos" value="1" min="1"></div>
+    </div>
+    <div class="fg"><label>Next Step (name)</label><input type="text" id="mStepNext" placeholder="e.g. Finance Approval"></div>
+    <button class="btn btn-acc" style="width:100%" onclick="addStep()">Add Step</button>
+  </div>
+</div>
+
+<!-- Add Rule -->
+<div class="modal-bg" id="mAddRule">
+  <div class="modal">
+    <div class="modal-hdr"><h3>Add Rule</h3><button class="modal-x" onclick="closeModal('mAddRule')">✕</button></div>
+    <div class="fg"><label>Workflow</label><select id="mRuleWf"></select></div>
+    <div class="fg-row">
+      <div class="fg"><label>Field</label><input type="text" id="mRuleField" placeholder="e.g. order_amount"></div>
+      <div class="fg"><label>Operator</label>
+        <select id="mRuleOp">
+          <option value=">">Greater than (&gt;)</option><option value="<">Less than (&lt;)</option>
+          <option value="==">Equals (==)</option><option value="!=">Not equals (!=)</option>
+          <option value=">=">Greater or equal (≥)</option><option value="<=">Less or equal (≤)</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg-row">
+      <div class="fg"><label>Value</label><input type="text" id="mRuleVal" placeholder="e.g. 5000"></div>
+      <div class="fg"><label>Then go to Step</label><input type="text" id="mRuleNext" placeholder="e.g. Finance Approval"></div>
+    </div>
+    <button class="btn btn-acc" style="width:100%" onclick="addRule()">Save Rule</button>
+  </div>
+</div>
+
+<!-- Complete Process -->
+<div class="modal-bg" id="mComplete">
+  <div class="modal">
+    <div class="modal-hdr"><h3>Update Process Status</h3><button class="modal-x" onclick="closeModal('mComplete')">✕</button></div>
+    <input type="hidden" id="mCompleteId">
+    <div class="fg"><label>New Status</label>
+      <select id="mCompleteStatus">
+        <option value="completed">✅ Mark Completed</option>
+        <option value="running">▶ Set Running</option>
+        <option value="pending_approval">⏳ Pending Approval</option>
+        <option value="paused">⏸ Paused</option>
+        <option value="rejected">❌ Rejected</option>
+      </select>
+    </div>
+    <div class="fg"><label>Next Step Name</label><input type="text" id="mCompleteStep" placeholder="Leave blank to keep current"></div>
+    <button class="btn btn-acc" style="width:100%" onclick="updateInstance()">Update</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"><i class="fas fa-check-circle"></i><span id="toastTxt"></span></div>
+
+<script>
+// ════════════════════════════════════════════
+//  DATA STORE (localStorage)
+// ════════════════════════════════════════════
+const DB = {
+  get: k => JSON.parse(localStorage.getItem('fx_'+k) || 'null'),
+  set: (k,v) => localStorage.setItem('fx_'+k, JSON.stringify(v)),
+  init() {
+    if (!this.get('users')) {
+      this.set('users', [
+        {id:'u1',name:'Admin User',email:'admin@flowx.com',password:'admin123',role:'admin',created:new Date().toISOString()},
+        {id:'u2',name:'Ravi Kumar',email:'manager@flowx.com',password:'admin123',role:'manager',created:new Date().toISOString()},
+        {id:'u3',name:'Priya Singh',email:'emp@flowx.com',password:'admin123',role:'employee',created:new Date().toISOString()}
+      ]);
+    }
+    if (!this.get('workflows')) {
+      this.set('workflows',[
+        {id:'wf1',name:'Leave Approval',description:'Employee leave request process',createdBy:'u1',created:new Date().toISOString()},
+        {id:'wf2',name:'Purchase Order',description:'Purchase approval with amount routing',createdBy:'u1',created:new Date().toISOString()},
+        {id:'wf3',name:'Employee Onboarding',description:'New hire onboarding steps',createdBy:'u1',created:new Date().toISOString()}
+      ]);
+    }
+    if (!this.get('steps')) {
+      this.set('steps',[
+        {id:'s1',wfId:'wf1',name:'Submit Request',type:'start',next:'Manager Review',pos:1},
+        {id:'s2',wfId:'wf1',name:'Manager Review',type:'approval',next:'HR Notification',pos:2},
+        {id:'s3',wfId:'wf1',name:'HR Notification',type:'notification',next:'Completed',pos:3},
+        {id:'s4',wfId:'wf1',name:'Completed',type:'end',next:'',pos:4},
+        {id:'s5',wfId:'wf2',name:'Order Submitted',type:'start',next:'Amount Check',pos:1},
+        {id:'s6',wfId:'wf2',name:'Amount Check',type:'condition',next:'Manager Approval',pos:2},
+        {id:'s7',wfId:'wf2',name:'Manager Approval',type:'approval',next:'Finance Approval',pos:3},
+        {id:'s8',wfId:'wf2',name:'Finance Approval',type:'approval',next:'Order Completed',pos:4},
+        {id:'s9',wfId:'wf2',name:'Order Completed',type:'end',next:'',pos:5},
+        {id:'s10',wfId:'wf3',name:'Offer Accepted',type:'start',next:'IT Setup',pos:1},
+        {id:'s11',wfId:'wf3',name:'IT Setup',type:'process',next:'HR Orientation',pos:2},
+        {id:'s12',wfId:'wf3',name:'HR Orientation',type:'notification',next:'Completed',pos:3},
+        {id:'s13',wfId:'wf3',name:'Completed',type:'end',next:'',pos:4}
+      ]);
+    }
+    if (!this.get('instances')) this.set('instances',[]);
+    if (!this.get('approvals')) this.set('approvals',[]);
+    if (!this.get('audit')) this.set('audit',[]);
+    if (!this.get('notifs')) this.set('notifs',[]);
+    if (!this.get('rules')) {
+      this.set('rules',[
+        {id:'r1',wfId:'wf2',field:'order_amount',op:'>',value:'5000',nextStep:'Finance Approval'}
+      ]);
+    }
+  }
+};
+
+// ════════════════════════════════════════════
+//  AUTH
+// ════════════════════════════════════════════
+let CU = null; // current user
+
+function toggleAuth(mode) {
+  document.getElementById('fLogin').style.display = mode==='login'?'block':'none';
+  document.getElementById('fReg').style.display   = mode==='register'?'block':'none';
+}
+
+function doLogin() {
+  const email = document.getElementById('lEmail').value.trim();
+  const pass  = document.getElementById('lPass').value;
+  const users = DB.get('users') || [];
+  const u = users.find(x => x.email===email && x.password===pass);
+  if (!u) { showErr('errLogin','Invalid email or password'); return; }
+  CU = u; localStorage.setItem('fx_session', JSON.stringify(u));
+  launchApp();
+}
+
+function doRegister() {
+  const name  = document.getElementById('rName').value.trim();
+  const email = document.getElementById('rEmail').value.trim();
+  const pass  = document.getElementById('rPass').value;
+  const role  = document.getElementById('rRole').value;
+  if (!name||!email||!pass) { showErr('errReg','All fields required'); return; }
+  if (pass.length < 6) { showErr('errReg','Password min 6 characters'); return; }
+  const users = DB.get('users') || [];
+  if (users.find(x=>x.email===email)) { showErr('errReg','Email already exists'); return; }
+  const u = {id:'u'+Date.now(),name,email,password:pass,role,created:new Date().toISOString()};
+  users.push(u); DB.set('users',users);
+  CU = u; localStorage.setItem('fx_session', JSON.stringify(u));
+  launchApp();
+}
+
+function logout() {
+  localStorage.removeItem('fx_session'); CU=null;
+  document.getElementById('app').style.display='none';
+  document.getElementById('loginPage').style.display='flex';
+}
+
+function showErr(id,msg) {
+  const el=document.getElementById(id); el.textContent=msg; el.style.display='block';
+  setTimeout(()=>el.style.display='none',3500);
+}
+
+// ════════════════════════════════════════════
+//  BOOT
+// ════════════════════════════════════════════
+function boot() {
+  DB.init();
+  const sess = localStorage.getItem('fx_session');
+  if (sess) { CU = JSON.parse(sess); launchApp(); }
+}
+
+function launchApp() {
+  document.getElementById('loginPage').style.display='none';
+  document.getElementById('app').style.display='flex';
+  document.getElementById('sbName').textContent = CU.name;
+  document.getElementById('sbRole').textContent = CU.role;
+  document.getElementById('sbAvatar').textContent = CU.name[0].toUpperCase();
+  // Hide admin-only nav for non-admins
+  if (CU.role !== 'admin') {
+    document.getElementById('navUsers').style.display='none';
+    document.getElementById('navAudit').style.display='none';
+    document.getElementById('navAdminLbl').style.display='none';
+  }
+  go('dashboard');
+  setInterval(refreshBadges,5000);
+}
+
+// ════════════════════════════════════════════
+//  NAVIGATION
+// ════════════════════════════════════════════
+const PAGE_TITLES = {
+  dashboard:'Dashboard',workflows:'Workflows',instances:'My Processes',
+  approvals:'Approvals',builder:'Workflow Builder',tracker:'Process Tracker',
+  rules:'Rule Engine',templates:'Templates',users:'User Management',audit:'Audit Logs'
+};
+
+function go(page) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const pg = document.getElementById('page-'+page);
+  if (!pg) return;
+  pg.classList.add('active');
+  const nav = document.querySelector(`[onclick="go('${page}')"]`);
+  if (nav) nav.classList.add('active');
+  document.getElementById('pgTitle').textContent = PAGE_TITLES[page]||page;
+  document.getElementById('pgBC').textContent = page.charAt(0).toUpperCase()+page.slice(1);
+  // Load page data
+  if (page==='dashboard')  renderDashboard();
+  if (page==='workflows')  renderWorkflows();
+  if (page==='instances')  renderInstances();
+  if (page==='approvals')  renderApprovals();
+  if (page==='builder')    populateBuilderSelect();
+  if (page==='tracker')    renderTracker();
+  if (page==='rules')      renderRules();
+  if (page==='templates')  renderTemplates();
+  if (page==='users')      renderUsers();
+  if (page==='audit')      renderAudit();
+}
+
+// ════════════════════════════════════════════
+//  DASHBOARD
+// ════════════════════════════════════════════
+function renderDashboard() {
+  const insts  = DB.get('instances') || [];
+  const apprs  = DB.get('approvals') || [];
+  const myInst = CU.role==='admin' ? insts : insts.filter(i=>i.startedBy===CU.id);
+  const myAppr = CU.role==='admin' ? apprs.filter(a=>a.status==='pending')
+                                   : apprs.filter(a=>a.assignedTo===CU.id&&a.status==='pending');
+  document.getElementById('st-total').textContent = myInst.length;
+  document.getElementById('st-done').textContent  = myInst.filter(i=>i.status==='completed').length;
+  document.getElementById('st-run').textContent   = myInst.filter(i=>i.status==='running').length;
+  document.getElementById('st-pend').textContent  = myAppr.length;
+
+  const recent = myInst.slice(-5).reverse();
+  const dr = document.getElementById('dashRecent');
+  if (!recent.length) {
+    dr.innerHTML = '<div class="empty"><i class="fas fa-inbox"></i><p>No processes yet</p></div>'; return;
+  }
+  dr.innerHTML = `<div class="tbl-wrap"><table><thead><tr><th>Workflow</th><th>Step</th><th>Status</th></tr></thead><tbody>
+    ${recent.map(i=>`<tr>
+      <td style="font-weight:600">${esc(i.wfName)}</td>
+      <td style="color:var(--accent)">${esc(i.currentStep)}</td>
+      <td><span class="badge b${i.status.replace('_','')}">${i.status.replace('_',' ')}</span></td>
+    </tr>`).join('')}
+  </tbody></table></div>`;
+  refreshBadges();
+}
+
+function refreshBadges() {
+  const apprs = DB.get('approvals') || [];
+  const mine  = CU.role==='admin' ? apprs.filter(a=>a.status==='pending')
+                                  : apprs.filter(a=>a.assignedTo===CU.id&&a.status==='pending');
+  const badge = document.getElementById('apprBadge');
+  if (mine.length) { badge.textContent=mine.length; badge.style.display=''; }
+  else badge.style.display='none';
+
+  const notifs = (DB.get('notifs')||[]).filter(n=>n.userId===CU.id&&!n.read);
+  document.getElementById('notifDot').style.display = notifs.length?'':'none';
+}
+
+function addLiveEvent(text,type='info') {
+  const feed = document.getElementById('liveFeed');
+  const empty = feed.querySelector('.empty');
+  if (empty) empty.remove();
+  const colors={info:'var(--accent)',success:'var(--accent3)',warn:'var(--warn)',error:'var(--danger)'};
+  const icons={info:'fa-circle-info',success:'fa-check-circle',warn:'fa-triangle-exclamation',error:'fa-circle-xmark'};
+  const div=document.createElement('div'); div.className='lf-item';
+  div.innerHTML=`<i class="fas ${icons[type]||'fa-bolt'} lf-ico" style="color:${colors[type]||'var(--accent)'}"></i>
+    <div class="lf-txt">${esc(text)}</div>
+    <div class="lf-time">${new Date().toLocaleTimeString()}</div>`;
+  feed.prepend(div);
+  const items=feed.querySelectorAll('.lf-item');
+  if(items.length>15) items[items.length-1].remove();
+}
+
+// ════════════════════════════════════════════
+//  WORKFLOWS
+// ════════════════════════════════════════════
+function renderWorkflows() {
+  const wfs   = DB.get('workflows') || [];
+  const steps = DB.get('steps') || [];
+  const tbody = document.getElementById('wfTbody');
+  if (!wfs.length) {
+    tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:1.5rem">No workflows. Create one!</td></tr>'; return;
+  }
+  tbody.innerHTML = wfs.map(w=>`<tr>
+    <td style="font-weight:600">${esc(w.name)}</td>
+    <td style="color:var(--muted)">${esc(w.description||'—')}</td>
+    <td><span class="badge brun">${steps.filter(s=>s.wfId===w.id).length} steps</span></td>
+    <td style="color:var(--muted);font-size:.75rem">${fmtDate(w.created)}</td>
+    <td><div style="display:flex;gap:.4rem">
+      <button class="btn btn-sm btn-out" onclick="viewBuilderFor('${w.id}')"><i class="fas fa-eye"></i></button>
+      ${CU.role!=='employee'?`<button class="btn btn-sm btn-del" onclick="deleteWorkflow('${w.id}')"><i class="fas fa-trash"></i></button>`:''}
+    </div></td>
+  </tr>`).join('');
+}
+
+function createWorkflow() {
+  const name = document.getElementById('mWfName').value.trim();
+  const desc = document.getElementById('mWfDesc').value.trim();
+  if (!name) { toast('Workflow name is required','error'); return; }
+  if (CU.role==='employee') { toast('Only admin/manager can create workflows','error'); return; }
+  const wfs = DB.get('workflows')||[];
+  const wf  = {id:'wf'+Date.now(),name,description:desc,createdBy:CU.id,created:new Date().toISOString()};
+  wfs.push(wf); DB.set('workflows',wfs);
+  closeModal('mCreateWF');
+  document.getElementById('mWfName').value=''; document.getElementById('mWfDesc').value='';
+  toast('Workflow created!','success');
+  addLiveEvent(`${CU.name} created workflow "${name}"`,'success');
+  renderWorkflows();
+}
+
+function deleteWorkflow(id) {
+  if (!confirm('Delete this workflow and all its steps?')) return;
+  DB.set('workflows',(DB.get('workflows')||[]).filter(w=>w.id!==id));
+  DB.set('steps',(DB.get('steps')||[]).filter(s=>s.wfId!==id));
+  toast('Workflow deleted'); renderWorkflows();
+}
+
+function viewBuilderFor(id) {
+  go('builder');
+  setTimeout(()=>{ document.getElementById('builderSel').value=id; loadBuilder(); },80);
+}
+
+// ════════════════════════════════════════════
+//  INSTANCES
+// ════════════════════════════════════════════
+function renderInstances() {
+  const all    = DB.get('instances') || [];
+  const filter = document.getElementById('instFilter')?.value || '';
+  let list = CU.role==='admin' ? all : all.filter(i=>i.startedBy===CU.id);
+  if (filter) list = list.filter(i=>i.status===filter);
+  list = list.slice().reverse();
+  const tbody = document.getElementById('instTbody');
+  if (!list.length) {
+    tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:1.5rem">No processes found.</td></tr>'; return;
+  }
+  tbody.innerHTML = list.map(i=>`<tr>
+    <td style="font-weight:600">${esc(i.wfName)}</td>
+    <td style="color:var(--accent)">${esc(i.currentStep)}</td>
+    <td><span class="badge b${i.status.replace('_','')}">${i.status.replace('_',' ')}</span></td>
+    <td style="color:var(--muted);font-size:.75rem">${fmtDate(i.created)}</td>
+    <td><div style="display:flex;gap:.4rem">
+      <button class="btn btn-sm btn-out" onclick="viewTimeline('${i.id}')"><i class="fas fa-timeline"></i></button>
+      <button class="btn btn-sm btn-pur" onclick="openCompleteModal('${i.id}')"><i class="fas fa-pen"></i></button>
+      ${CU.role!=='employee'?`<button class="btn btn-sm btn-ok" onclick="quickApprove('${i.id}')"><i class="fas fa-check"></i></button>`:''}
+    </div></td>
+  </tr>`).join('');
+}
+
+function openStartInstance() {
+  const wfs = DB.get('workflows')||[];
+  document.getElementById('mInstWf').innerHTML = wfs.map(w=>`<option value="${w.id}">${esc(w.name)}</option>`).join('');
+}
+
+function startInstance() {
+  const wfId = document.getElementById('mInstWf').value;
+  const notes= document.getElementById('mInstNotes').value;
+  const wfs  = DB.get('workflows')||[];
+  const steps= DB.get('steps')||[];
+  const wf   = wfs.find(w=>w.id===wfId);
+  if (!wf) { toast('Select a workflow','error'); return; }
+  const firstStep = steps.filter(s=>s.wfId===wfId).sort((a,b)=>a.pos-b.pos)[0];
+  const inst = {
+    id:'i'+Date.now(), wfId, wfName:wf.name,
+    currentStep: firstStep ? firstStep.name : 'Start',
+    status:'running', startedBy:CU.id, startedByName:CU.name,
+    notes, created:new Date().toISOString(), logs:[
+      {action:`Workflow "${wf.name}" started`, by:CU.name, time:new Date().toISOString()}
+    ]
+  };
+  const insts = DB.get('instances')||[]; insts.push(inst); DB.set('instances',insts);
+  addAuditLog(inst.id, `Workflow "${wf.name}" started at step "${inst.currentStep}"`, CU.id, CU.name);
+  closeModal('mStartInst');
+  document.getElementById('mInstNotes').value='';
+  toast('Process launched!','success');
+  addLiveEvent(`${CU.name} started "${wf.name}"`,'success');
+  renderInstances(); renderDashboard();
+}
+
+function openCompleteModal(id) {
+  document.getElementById('mCompleteId').value = id;
+  const inst = (DB.get('instances')||[]).find(i=>i.id===id);
+  if (inst) { document.getElementById('mCompleteStatus').value = inst.status; document.getElementById('mCompleteStep').value = inst.currentStep; }
+  openModal('mComplete');
+}
+
+function updateInstance() {
+  const id     = document.getElementById('mCompleteId').value;
+  const status = document.getElementById('mCompleteStatus').value;
+  const step   = document.getElementById('mCompleteStep').value.trim();
+  const insts  = DB.get('instances')||[];
+  const idx    = insts.findIndex(i=>i.id===id);
+  if (idx===-1) return;
+  insts[idx].status = status;
+  if (step) insts[idx].currentStep = step;
+  insts[idx].logs = insts[idx].logs || [];
+  insts[idx].logs.push({action:`Status updated to "${status}"${step?` at "${step}"`:''}`,by:CU.name,time:new Date().toISOString()});
+  DB.set('instances',insts);
+  addAuditLog(id,`Status changed to "${status}" by ${CU.name}`,CU.id,CU.name);
+  closeModal('mComplete');
+  toast('Process updated!','success');
+  addLiveEvent(`${CU.name} updated process to "${status}"`);
+  renderInstances(); renderDashboard();
+}
+
+function quickApprove(id) {
+  const insts = DB.get('instances')||[];
+  const idx   = insts.findIndex(i=>i.id===id);
+  if (idx===-1) return;
+  // Create an approval entry
+  const apprs = DB.get('approvals')||[];
+  const aid   = 'a'+Date.now();
+  apprs.push({id:aid,instanceId:id,wfName:insts[idx].wfName,stepName:insts[idx].currentStep,
+    assignedTo:CU.id,assignedToName:CU.name,status:'pending',
+    requestedBy:insts[idx].startedBy,requestedByName:insts[idx].startedByName||'User',
+    created:new Date().toISOString()});
+  DB.set('approvals',apprs);
+  insts[idx].status='pending_approval';
+  DB.set('instances',insts);
+  toast('Approval request created','success');
+  addLiveEvent(`Approval requested for "${insts[idx].wfName}"`,'warn');
+  renderInstances(); refreshBadges();
+}
+
+function viewTimeline(id) {
+  const inst = (DB.get('instances')||[]).find(i=>i.id===id);
+  if (!inst) return;
+  const logs = inst.logs||[];
+  const body = document.getElementById('mTimelineBody');
+  body.innerHTML = `<div style="margin-bottom:1rem">
+    <strong>${esc(inst.wfName)}</strong>
+    <span class="badge b${inst.status.replace('_','')} " style="margin-left:.5rem">${inst.status.replace('_',' ')}</span>
+  </div>`;
+  if (!logs.length) { body.innerHTML+='<div class="empty" style="padding:1.5rem"><p>No logs yet</p></div>'; }
+  else body.innerHTML += `<div class="timeline">${logs.map(l=>`
+    <div class="tl-item">
+      <div class="tl-dot done"></div>
+      <div class="tl-time">${fmtDate(l.time)}</div>
+      <div class="tl-text">${esc(l.action)}</div>
+      <div class="tl-who"><i class="fas fa-user"></i> ${esc(l.by)}</div>
+    </div>`).join('')}</div>`;
+  openModal('mTimeline');
+}
+
+// ════════════════════════════════════════════
+//  APPROVALS
+// ════════════════════════════════════════════
+function renderApprovals() {
+  const all  = DB.get('approvals')||[];
+  const mine = CU.role==='admin' ? all.filter(a=>a.status==='pending')
+                                 : all.filter(a=>a.assignedTo===CU.id&&a.status==='pending');
+  const grid = document.getElementById('apprGrid');
+  const cnt  = document.getElementById('apprCountBadge');
+  cnt.textContent = `${mine.length} pending`;
+  if (!mine.length) {
+    grid.innerHTML='<div class="empty" style="grid-column:1/-1"><i class="fas fa-check-circle"></i><p>All caught up! No pending approvals.</p></div>'; return;
+  }
+  grid.innerHTML = mine.map(a=>`
+    <div class="appr-card">
+      <div class="ac-top">
+        <div><div class="ac-wf">${esc(a.wfName)}</div><div class="ac-step"><i class="fas fa-circle-dot"></i> ${esc(a.stepName)}</div></div>
+        <span class="badge bpend">pending</span>
+      </div>
+      <div class="ac-req"><i class="fas fa-user"></i> Requested by ${esc(a.requestedByName||'User')} · ${fmtDate(a.created)}</div>
+      <div class="ac-btns">
+        <button class="btn btn-sm btn-ok" onclick="openResolve('${a.id}','approve')"><i class="fas fa-check"></i> Approve</button>
+        <button class="btn btn-sm btn-del" onclick="openResolve('${a.id}','reject')"><i class="fas fa-times"></i> Reject</button>
+      </div>
+    </div>`).join('');
+}
+
+function openResolve(id,action) {
+  document.getElementById('mResId').value     = id;
+  document.getElementById('mResAction').value = action;
+  document.getElementById('mResTitle').textContent = action==='approve'?'✅ Approve Request':'❌ Reject Request';
+  document.getElementById('mResComment').value = '';
+  openModal('mResolve');
+}
+
+function submitResolve() {
+  const id      = document.getElementById('mResId').value;
+  const action  = document.getElementById('mResAction').value;
+  const comment = document.getElementById('mResComment').value;
+  const status  = action==='approve'?'approved':'rejected';
+  const apprs   = DB.get('approvals')||[];
+  const idx     = apprs.findIndex(a=>a.id===id);
+  if (idx===-1) return;
+  apprs[idx].status  = status;
+  apprs[idx].comment = comment;
+  apprs[idx].resolvedAt = new Date().toISOString();
+  DB.set('approvals',apprs);
+  // Update instance
+  const insts = DB.get('instances')||[];
+  const iIdx  = insts.findIndex(i=>i.id===apprs[idx].instanceId);
+  if (iIdx!==-1) {
+    insts[iIdx].status = status==='approved'?'running':'rejected';
+    insts[iIdx].logs   = insts[iIdx].logs||[];
+    insts[iIdx].logs.push({action:`Step "${apprs[idx].stepName}" ${status} by ${CU.name}. ${comment?'Comment: '+comment:''}`,by:CU.name,time:new Date().toISOString()});
+    DB.set('instances',insts);
+    // Notify requester
+    pushNotif(apprs[idx].requestedBy, `Your request at step "${apprs[idx].stepName}" was ${status} by ${CU.name}`);
+  }
+  addAuditLog(apprs[idx].instanceId,`Step "${apprs[idx].stepName}" ${status} by ${CU.name}`,CU.id,CU.name);
+  closeModal('mResolve');
+  toast(`Request ${status} successfully`,'success');
+  addLiveEvent(`${CU.name} ${status} step "${apprs[idx].stepName}"`,'success');
+  renderApprovals(); refreshBadges();
+}
+
+// ════════════════════════════════════════════
+//  BUILDER
+// ════════════════════════════════════════════
+let builderWfId = null;
+
+function populateBuilderSelect() {
+  const wfs = DB.get('workflows')||[];
+  const sel = document.getElementById('builderSel');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">— Select Workflow —</option>' +
+    wfs.map(w=>`<option value="${w.id}">${esc(w.name)}</option>`).join('');
+  if (cur) sel.value=cur;
+}
+
+function loadBuilder() {
+  const id = document.getElementById('builderSel').value;
+  if (!id) { toast('Select a workflow first','error'); return; }
+  builderWfId = id;
+  document.getElementById('mStepWfId').value = id;
+  document.getElementById('addStepBtn').style.display='flex';
+  const steps = (DB.get('steps')||[]).filter(s=>s.wfId===id).sort((a,b)=>a.pos-b.pos);
+  renderCanvas(steps);
+  renderBuilderTable(steps);
+}
+
+const STEP_ICONS = {start:'▶',process:'⚙',condition:'◆',approval:'✋',notification:'🔔',end:'⏹'};
+
+function renderCanvas(steps) {
+  const c = document.getElementById('builderCanvas');
+  if (!steps.length) { c.innerHTML='<div class="empty"><i class="fas fa-diagram-project"></i><p>No steps yet</p></div>'; return; }
+  c.innerHTML=`<div class="step-flow">${steps.map((s,i)=>`
+    <div class="step-node">
+      <div class="step-box ${s.type}-type">
+        <span class="step-ico">${STEP_ICONS[s.type]||'●'}</span>${esc(s.name)}
+      </div>
+      <div class="step-lbl">${s.type}</div>
+    </div>
+    ${i<steps.length-1?'<div class="step-arr"></div>':''}`).join('')}
+  </div>`;
+}
+
+function renderBuilderTable(steps) {
+  const tbody = document.getElementById('builderTbody');
+  if (!steps.length) { tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:1.5rem">No steps yet.</td></tr>'; return; }
+  tbody.innerHTML = steps.map((s,i)=>`<tr>
+    <td style="color:var(--muted)">${i+1}</td>
+    <td style="font-weight:600">${esc(s.name)}</td>
+    <td><span class="badge b${s.type}">${s.type}</span></td>
+    <td style="color:var(--muted)">${esc(s.next||'—')}</td>
+    <td><button class="btn btn-sm btn-del" onclick="deleteStep('${s.id}')"><i class="fas fa-trash"></i></button></td>
+  </tr>`).join('');
+}
+
+function addStep() {
+  const wfId = document.getElementById('mStepWfId').value;
+  const name = document.getElementById('mStepName').value.trim();
+  const type = document.getElementById('mStepType').value;
+  const pos  = parseInt(document.getElementById('mStepPos').value)||1;
+  const next = document.getElementById('mStepNext').value.trim();
+  if (!name) { toast('Step name required','error'); return; }
+  const steps = DB.get('steps')||[];
+  steps.push({id:'s'+Date.now(),wfId,name,type,next,pos});
+  DB.set('steps',steps); closeModal('mAddStep');
+  document.getElementById('mStepName').value=''; document.getElementById('mStepNext').value='';
+  toast('Step added!','success'); loadBuilder();
+}
+
+function deleteStep(id) {
+  if (!confirm('Delete this step?')) return;
+  DB.set('steps',(DB.get('steps')||[]).filter(s=>s.id!==id));
+  toast('Step deleted'); loadBuilder();
+}
+
+// ════════════════════════════════════════════
+//  TRACKER
+// ════════════════════════════════════════════
+function renderTracker() {
+  const all   = DB.get('instances')||[];
+  const list  = CU.role==='admin' ? all : all.filter(i=>i.startedBy===CU.id);
+  const cont  = document.getElementById('trackerList');
+  if (!list.length) { cont.innerHTML='<div class="empty"><i class="fas fa-timeline"></i><p>No processes to track</p></div>'; return; }
+  cont.innerHTML = list.slice().reverse().map(inst=>{
+    const steps = (DB.get('steps')||[]).filter(s=>s.wfId===inst.wfId).sort((a,b)=>a.pos-b.pos);
+    const total = steps.length||1;
+    const curIdx= steps.findIndex(s=>s.name===inst.currentStep);
+    const pct   = inst.status==='completed'?100:Math.round(((curIdx+1)/total)*100);
+    return `<div class="tracker-card">
+      <div class="tracker-top">
+        <div>
+          <div class="tracker-wf">${esc(inst.wfName)}</div>
+          <div style="font-size:.75rem;color:var(--muted);margin-top:.2rem">
+            Current: <span style="color:var(--accent)">${esc(inst.currentStep)}</span> · Started by ${esc(inst.startedByName||'User')}
+          </div>
+        </div>
+        <span class="badge b${inst.status.replace('_','')}">${inst.status.replace('_',' ')}</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div style="font-size:.72rem;color:var(--muted)">${pct}% complete · ${fmtDate(inst.created)}</div>
+      ${steps.length?`<div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.75rem">
+        ${steps.map((s,i)=>`<span style="font-size:.68rem;padding:2px 8px;border-radius:5px;
+          background:${s.name===inst.currentStep?'rgba(0,229,255,.12)':'rgba(255,255,255,.04)'};
+          color:${s.name===inst.currentStep?'var(--accent)':'var(--muted)'}">
+          ${i+1}. ${esc(s.name)}</span>`).join('')}
+      </div>`:''}
+    </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════
+//  RULES
+// ════════════════════════════════════════════
+function renderRules() {
+  const rules = DB.get('rules')||[];
+  const wfs   = DB.get('workflows')||[];
+  const cont  = document.getElementById('rulesList');
+  if (!rules.length) { cont.innerHTML='<div class="empty"><i class="fas fa-code-branch"></i><p>No rules defined yet</p></div>'; return; }
+  cont.innerHTML = rules.map(r=>{
+    const wf = wfs.find(w=>w.id===r.wfId);
+    return `<div class="rule-card">
+      <div style="flex:1">
+        <div style="font-size:.8rem;color:var(--muted);margin-bottom:.3rem">${esc(wf?.name||'Unknown workflow')}</div>
+        <div style="font-size:.85rem">IF <code>${esc(r.field)} ${r.op} ${esc(r.value)}</code>
+          → THEN go to <code>${esc(r.nextStep)}</code>
+        </div>
+      </div>
+      <button class="btn btn-sm btn-del" onclick="deleteRule('${r.id}')"><i class="fas fa-trash"></i></button>
+    </div>`;
+  }).join('');
+}
+
+function addRule() {
+  const wfId    = document.getElementById('mRuleWf').value;
+  const field   = document.getElementById('mRuleField').value.trim();
+  const op      = document.getElementById('mRuleOp').value;
+  const value   = document.getElementById('mRuleVal').value.trim();
+  const nextStep= document.getElementById('mRuleNext').value.trim();
+  if (!field||!value||!nextStep) { toast('All rule fields required','error'); return; }
+  const rules = DB.get('rules')||[];
+  rules.push({id:'r'+Date.now(),wfId,field,op,value,nextStep});
+  DB.set('rules',rules); closeModal('mAddRule');
+  toast('Rule saved!','success'); renderRules();
+}
+
+function deleteRule(id) {
+  if (!confirm('Delete this rule?')) return;
+  DB.set('rules',(DB.get('rules')||[]).filter(r=>r.id!==id));
+  toast('Rule deleted'); renderRules();
+}
+
+function populateRuleWfSelect() {
+  const wfs = DB.get('workflows')||[];
+  document.getElementById('mRuleWf').innerHTML = wfs.map(w=>`<option value="${w.id}">${esc(w.name)}</option>`).join('');
+}
+
+// ════════════════════════════════════════════
+//  TEMPLATES
+// ════════════════════════════════════════════
+const TEMPLATES = [
+  {icon:'🏖️',name:'Leave Approval',desc:'Employee leave request with manager approval',steps:['Submit Request','Manager Approval','HR Notification','Done']},
+  {icon:'💳',name:'Purchase Order',desc:'Purchase approval with amount routing',steps:['Order Submit','Amount Check','Manager Approval','Finance Approval','Complete']},
+  {icon:'👤',name:'Employee Onboarding',desc:'New hire onboarding process',steps:['Offer Accepted','IT Setup','HR Orientation','Complete']},
+  {icon:'🔒',name:'IT Access Request',desc:'System access approval workflow',steps:['Request Submitted','Manager Approval','IT Review','Access Granted']},
+  {icon:'💰',name:'Expense Claim',desc:'Employee expense reimbursement',steps:['Claim Submitted','Manager Review','Finance Approval','Payment Done']},
+  {icon:'📋',name:'Project Approval',desc:'New project initiation approval',steps:['Proposal Submitted','Dept Review','Board Approval','Project Kickoff']}
+];
+
+function renderTemplates() {
+  document.getElementById('tmplGrid').innerHTML = TEMPLATES.map((t,i)=>`
+    <div class="tmpl-card" onclick="useTemplate(${i})">
+      <div class="tmpl-icon">${t.icon}</div>
+      <div class="tmpl-name">${t.name}</div>
+      <div class="tmpl-desc">${t.desc}</div>
+      <div style="margin-top:.6rem;font-size:.68rem;color:var(--muted)">${t.steps.length} steps</div>
+    </div>`).join('');
+  renderWorkflows(); // reuse workflow table
+  const wfs   = DB.get('workflows')||[];
+  const steps = DB.get('steps')||[];
+  const tbody = document.getElementById('tmplWfTbody');
+  tbody.innerHTML = wfs.map(w=>`<tr>
+    <td style="font-weight:600">${esc(w.name)}</td>
+    <td>${steps.filter(s=>s.wfId===w.id).length} steps</td>
+    <td style="color:var(--muted);font-size:.75rem">${fmtDate(w.created)}</td>
+    <td><button class="btn btn-sm btn-acc" onclick="viewBuilderFor('${w.id}')"><i class="fas fa-eye"></i> View</button></td>
+  </tr>`).join('');
+}
+
+function useTemplate(i) {
+  if (CU.role==='employee') { toast('Only admin/manager can create workflows','error'); return; }
+  const t = TEMPLATES[i];
+  const wfs = DB.get('workflows')||[];
+  const wf  = {id:'wf'+Date.now(),name:t.name,description:t.desc,createdBy:CU.id,created:new Date().toISOString()};
+  wfs.push(wf); DB.set('workflows',wfs);
+  const steps = DB.get('steps')||[];
+  const types = ['start','process','approval','approval','process','end'];
+  t.steps.forEach((name,pos)=>{
+    steps.push({id:'s'+Date.now()+'_'+pos,wfId:wf.id,name,
+      type:pos===0?'start':pos===t.steps.length-1?'end':'approval',
+      next:t.steps[pos+1]||'',pos:pos+1});
+  });
+  DB.set('steps',steps);
+  toast(`Template "${t.name}" added!`,'success');
+  addLiveEvent(`Template "${t.name}" imported`,'success');
+  renderTemplates();
+}
+
+// ════════════════════════════════════════════
+//  USERS
+// ════════════════════════════════════════════
+function renderUsers() {
+  const users = DB.get('users')||[];
+  document.getElementById('usersTbody').innerHTML = users.map(u=>`<tr>
+    <td>
+      <div style="display:flex;align-items:center;gap:.6rem">
+        <div class="avatar" style="width:28px;height:28px;font-size:.7rem">${u.name[0].toUpperCase()}</div>
+        <span style="font-weight:600">${esc(u.name)}</span>
+      </div>
+    </td>
+    <td style="color:var(--muted)">${esc(u.email)}</td>
+    <td>
+      ${u.id===CU.id?`<span class="badge b${u.role}">${u.role}</span>`:`
+        <select class="role-sel" onchange="updateUserRole('${u.id}',this.value)">
+          <option value="employee" ${u.role==='employee'?'selected':''}>Employee</option>
+          <option value="manager"  ${u.role==='manager' ?'selected':''}>Manager</option>
+          <option value="admin"    ${u.role==='admin'   ?'selected':''}>Admin</option>
+        </select>`}
+    </td>
+    <td style="color:var(--muted);font-size:.75rem">${fmtDate(u.created)}</td>
+    <td>
+      ${u.id!==CU.id?`<button class="btn btn-sm btn-del" onclick="deleteUser('${u.id}')"><i class="fas fa-trash"></i></button>`:'<span style="color:var(--muted);font-size:.75rem">You</span>'}
+    </td>
+  </tr>`).join('');
+}
+
+function updateUserRole(uid,role) {
+  const users = DB.get('users')||[];
+  const idx   = users.findIndex(u=>u.id===uid);
+  if (idx===-1) return;
+  users[idx].role = role; DB.set('users',users);
+  toast(`Role updated to ${role}`,'success');
+}
+
+function deleteUser(uid) {
+  if (!confirm('Delete this user?')) return;
+  DB.set('users',(DB.get('users')||[]).filter(u=>u.id!==uid));
+  toast('User deleted'); renderUsers();
+}
+
+// ════════════════════════════════════════════
+//  AUDIT LOGS
+// ════════════════════════════════════════════
+function addAuditLog(instanceId, action, by, byName) {
+  const logs = DB.get('audit')||[];
+  logs.push({id:'al'+Date.now(),instanceId,action,by,byName,time:new Date().toISOString()});
+  DB.set('audit',logs);
+}
+
+function renderAudit() {
+  const logs = (DB.get('audit')||[]).slice().reverse().slice(0,100);
+  const cont = document.getElementById('auditList');
+  if (!logs.length) { cont.innerHTML='<div class="empty"><i class="fas fa-shield-halved"></i><p>No audit logs yet</p></div>'; return; }
+  cont.innerHTML = logs.map(l=>`<div class="audit-row">
+    <div class="audit-ico"><i class="fas fa-bolt"></i></div>
+    <div style="flex:1">
+      <div class="audit-txt">${esc(l.action)}</div>
+      <div class="audit-who"><i class="fas fa-user"></i> ${esc(l.byName||'System')}</div>
+    </div>
+    <div class="audit-ts">${fmtDate(l.time)}</div>
+  </div>`).join('');
+}
+
+// ════════════════════════════════════════════
+//  NOTIFICATIONS
+// ════════════════════════════════════════════
+function pushNotif(userId, message) {
+  const notifs = DB.get('notifs')||[];
+  notifs.push({id:'n'+Date.now(),userId,message,read:false,time:new Date().toISOString()});
+  DB.set('notifs',notifs);
+  if (userId===CU.id) { document.getElementById('notifDot').style.display=''; }
+}
+
+function renderNotifs() {
+  const mine  = (DB.get('notifs')||[]).filter(n=>n.userId===CU.id).slice().reverse();
+  const list  = document.getElementById('notifList');
+  if (!mine.length) { list.innerHTML='<div class="empty" style="padding:1.5rem"><i class="far fa-bell-slash"></i><p>No notifications</p></div>'; return; }
+  list.innerHTML = mine.map(n=>`<div class="np-item ${n.read?'':'unread'}">
+    <div class="np-msg">${esc(n.message)}</div>
+    <div class="np-time">${fmtDate(n.time)}</div>
+  </div>`).join('');
+}
+
+function toggleNotif() {
+  const p = document.getElementById('notifPanel');
+  p.classList.toggle('open');
+  if (p.classList.contains('open')) renderNotifs();
+}
+
+function markAllRead() {
+  const notifs = DB.get('notifs')||[];
+  notifs.forEach(n=>{ if(n.userId===CU.id) n.read=true; });
+  DB.set('notifs',notifs);
+  document.getElementById('notifDot').style.display='none';
+  renderNotifs();
+}
+
+// ════════════════════════════════════════════
+//  EXPORT CSV
+// ════════════════════════════════════════════
+function exportCSV(type) {
+  let rows=[], headers=[], filename='';
+  if (type==='audit') {
+    headers=['ID','Action','By','Time'];
+    rows=(DB.get('audit')||[]).map(l=>[l.id,l.action,l.byName,l.time]);
+    filename='audit_logs.csv';
+  } else {
+    headers=['ID','Workflow','Current Step','Status','Started By','Created'];
+    rows=(DB.get('instances')||[]).map(i=>[i.id,i.wfName,i.currentStep,i.status,i.startedByName,i.created]);
+    filename='processes.csv';
+  }
+  const csv = [headers,...rows].map(r=>r.map(c=>`"${String(c||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob= new Blob([csv],{type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a   = document.createElement('a'); a.href=url; a.download=filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast(`${filename} downloaded!`,'success');
+}
+
+// ════════════════════════════════════════════
+//  MODALS
+// ════════════════════════════════════════════
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  // Pre-populate selects
+  if (id==='mStartInst') openStartInstance();
+  if (id==='mAddRule')   populateRuleWfSelect();
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.modal-bg').forEach(bg=>{
+  bg.addEventListener('click',e=>{ if(e.target===bg) bg.classList.remove('open'); });
+});
+document.addEventListener('click',e=>{
+  const p=document.getElementById('notifPanel'),b=document.getElementById('notifBtn');
+  if (!p.contains(e.target)&&!b.contains(e.target)) p.classList.remove('open');
+});
+
+function toast(msg,type='success') {
+  const t=document.getElementById('toast');
+  document.getElementById('toastTxt').textContent=msg;
+  t.className=`show ${type==='error'?'err':'ok'}`;
+  t.querySelector('i').className=type==='error'?'fas fa-circle-exclamation':'fas fa-check-circle';
+  clearTimeout(t._timer);
+  t._timer=setTimeout(()=>t.classList.remove('show'),3200);
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function fmtDate(d) {
+  if (!d) return '—';
+  const dt=new Date(d);
+  return isNaN(dt)?d:dt.toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+
+function filterTable(inputId, tbodyId, colIdx) {
+  const q = document.getElementById(inputId).value.toLowerCase();
+  const rows = document.getElementById(tbodyId).querySelectorAll('tr');
+  rows.forEach(r=>{ r.style.display=r.cells[colIdx]?.textContent.toLowerCase().includes(q)?'':'none'; });
+}
+
+boot();
+</script>
+</body>
+</html>
